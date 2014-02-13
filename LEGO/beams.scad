@@ -35,7 +35,21 @@ thin_beam_height = beam_height/3;
 
 // beam143(5,5);
 
-beam_tee();
+beams( [ [ 5, "X<->O" ], [ 45, 5, 3 ] ] );
+
+//
+// beams = [ beam, connection, beam, connection, ... beam ]
+// beam = [ hole_count, hole_string  ] 
+//
+
+module beams( beams = [], height = beam_height ) {
+  for (i = [0:2:len(beams)-1]) {
+    assign( beam = beams[i], connection = beams[i+1] ) {
+      rotate([0,0,connection[0]])
+        beam( beam, height );
+    }
+  }
+}
 
 module beam_tee(stem = 3, cross = 3, height = beam_height) {
   rotate([0,0,90])
@@ -51,11 +65,11 @@ module beam_tee(stem = 3, cross = 3, height = beam_height) {
   }
 }
 
-module beam_bent143(left = [4, "OOOX"], right = [ 6, "OOOOOX" ], height = beam_height ) {
-  rotate([0,0,53.13])
-    beam( right, height);
-  rotate([0,0,180])
-    beam( left, height);
+module beam_bent143(left = [4, "XOOO"], right = [ 6, "OOOOOX" ], height = beam_height ) {
+  translate([(left[0]-1)*hole_separation, 0, 0])    
+    rotate([0,0,53.13])
+      beam( right, height);
+  beam( left, height);
 }
 
 module beam_bent90(left = [ 4, "OOOX" ], right = [ 2, "OO" ], height = beam_height) {
@@ -65,7 +79,6 @@ module beam_bent90(left = [ 4, "OOOX" ], right = [ 2, "OO" ], height = beam_heig
 }
 
 module beam_tri(left = [ 7, "OOOOOOX" ], middle = [ 4, "O<>O" ], right = [ 3, "OOX" ], height = beam_height) {
-
 
   translate([-(cross-1)*hole_separation/2, 0, 0])  
     rotate([0,0,90]) beam(2);
