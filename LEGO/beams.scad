@@ -198,10 +198,10 @@ module cut_holes( beam = [ 5, "OOOO" ], beam_height=7.8 ) {
             cut_right_slot( -beam_length/2+hole*hole_separation, beam_height );              
           } 
           if( layout[hole] == "X" ) {
-            cut_axle( -beam_length/2+hole*hole_separation, beam_height, first = (hole==0), last = (hole==holes-1) );
+            cut_axle( -beam_length/2+hole*hole_separation, beam_height, first = (hole==0), last = (hole==holes) );
           } 
           if( layout[hole] == "-" ) {
-            cut_slot( -beam_length/2+hole*hole_separation, beam_height, first = (hole==0), last = (hole==holes-1) );
+            cut_slot( -beam_length/2+hole*hole_separation, beam_height, first = (hole==0), last = (hole==holes) );
           } 
         }
     }
