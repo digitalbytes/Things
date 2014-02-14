@@ -21,6 +21,17 @@
 //   OOXOO    - Size 5 beam with an axle hole in the middle.
 //   <--->OOO - Size 8 beam with a size 5 slot and three holes at the end.
 //
+// Between each beam is a connection that defines how the beams connect.
+//
+//  * Holes are numbered from 1 to N (the length of the beam) from left to right.
+//  * Angles are in degrees.
+//
+//   [ PREVIOUS_BEAM_HOLE, CURRENT_BEAM_HOLE, ANGLE ]
+//
+// Here is a standard 4x2 90 degree lift arm:
+//  
+//   [ "XOOO", [ 4, 1, 90 ], [ "OO"] ]
+//
 
 hole_separation = 8.0;
 hole_inside_diameter = 5.4;
@@ -36,10 +47,10 @@ thin_beam_height = beam_height/3;
 // beam143(5,5);
 
 lego_beam( [ 
-        [ 5, "X<->O" ], 
-        [ 5, 1, 45 ], [ 5, "OOOOO" ], 
-        [ 5, 3, 90 ], [ 5, "XXOXX" ],
-         ] );
+  [ 5, "X<->O" ], 
+  [ 5, 1, 45 ], [ 5, "OOOOO" ], 
+  [ 5, 3, 90 ], [ 5, "XXOXX" ],
+] );
 
 //
 // beams = [ beam, connection, beam, connection, ... beam ]
@@ -49,12 +60,12 @@ lego_beam( [
 module lego_beam( beams = [], height = beam_height ) {
   translate([0, 0, beam_height/2])
     difference() {
-      _beams( 0, 0, 0, 0, beams, height );
-      _holes( 0, 0, 0, 0, beams, height );
+      _beams( 0, beams, height );
+      _holes( 0, beams, height );
     }
 }
 
-module _holes( b = 0, x = 0, y = 0, deg = 0, beams = [], height = beam_height ) {
+module _holes( b = 0, beams = [], height = beam_height ) {
   beam = beams[b];
   connection = beams[b-1];
   next_beam = beams[b+2];
@@ -65,15 +76,15 @@ module _holes( b = 0, x = 0, y = 0, deg = 0, beams = [], height = beam_height ) 
 
   if( connection ) {
     if( next_beam ) {
-    translate( [ (x+connection[0]-1)*hole_separation, y * hole_separation, 0 ] )
-     rotate([0, 0, deg+connection[2]])
+    translate( [ (connection[0]-1)*hole_separation, 0,  0 ] )
+     rotate([0, 0, connection[2]])
       translate( [ -(connection[1]-1)*hole_separation, 0, 0 ] )
         cut_holes( beam, height )
-          _holes( b+2, x, y, deg, beams, height );          
+          _holes( b+2, beams, height );          
     }
     else {
-      translate( [ (x+connection[0]-1)*hole_separation, y * hole_separation, 0 ] )
-       rotate([0, 0, deg+connection[2]])
+      translate( [ (connection[0]-1)*hole_separation, 0, 0 ] )
+       rotate([0, 0, connection[2]])
         translate( [ -(connection[1]-1)*hole_separation, 0, 0 ] )
           cut_holes( beam, height );
     }
@@ -81,7 +92,7 @@ module _holes( b = 0, x = 0, y = 0, deg = 0, beams = [], height = beam_height ) 
   else {
     if( next_beam ) {
       cut_holes( beam, height )
-        _holes( b+2, x, y, deg, beams, height );            
+        _holes( b+2, beams, height );            
     }
     else {
       cut_holes( beam, height );              
@@ -89,7 +100,7 @@ module _holes( b = 0, x = 0, y = 0, deg = 0, beams = [], height = beam_height ) 
   }
 }
 
-module _beams( b = 0, x = 0, y = 0, deg = 0, beams = [], height = beam_height ) {
+module _beams( b = 0, beams = [], height = beam_height ) {
   beam = beams[b];
   connection = beams[b-1];
   next_beam = beams[b+2];
@@ -100,15 +111,15 @@ module _beams( b = 0, x = 0, y = 0, deg = 0, beams = [], height = beam_height ) 
 
   if( connection ) {
     if( next_beam ) {
-    translate( [ (x+connection[0]-1)*hole_separation, y * hole_separation, 0 ] )
-     rotate([0, 0, deg+connection[2]])
+    translate( [ (connection[0]-1)*hole_separation, 0, 0 ] )
+     rotate([0, 0, connection[2]])
       translate( [ -(connection[1]-1)*hole_separation, 0, 0 ] )
         solid_beam( beam, height )
-          _beams( b+2, x, y, deg, beams, height );          
+          _beams( b+2, beams, height );          
     }
     else {
-      translate( [ (x+connection[0]-1)*hole_separation, y * hole_separation, 0 ] )
-       rotate([0, 0, deg+connection[2]])
+      translate( [ (connection[0]-1)*hole_separation, 0, 0 ] )
+       rotate([0, 0, connection[2]])
         translate( [ -(connection[1]-1)*hole_separation, 0, 0 ] )
           solid_beam( beam, height );
     }
@@ -116,7 +127,7 @@ module _beams( b = 0, x = 0, y = 0, deg = 0, beams = [], height = beam_height ) 
   else {
     if( next_beam ) {
       solid_beam( beam, height )
-        _beams( b+2, x, y, deg, beams, height );            
+        _beams( b+2, beams, height );            
     }
     else {
       solid_beam( beam, height );              
