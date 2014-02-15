@@ -64,7 +64,7 @@ thin_beam_height = beam_height/3;
 //  [ 5, 3, 90 ], [ 5, "XXOXX" ],
 // ] );
 
-anybeam_135x2();
+anybeam_test();
 
 //
 // beams = [ beam, connection, beam, connection, ... beam ]
@@ -74,8 +74,8 @@ anybeam_135x2();
 module anybeam( beams = [], height = beam_height ) {
   translate([0, 0, beam_height/2])
     difference() {
-      _beams( 0, beams, height );
-      _holes( 0, beams, height );
+      ab_beams( 0, beams, height );
+      ab_holes( 0, beams, height );
     }
 }
 
@@ -95,39 +95,53 @@ module anybeam_135x2(left = [ 7, "XOOOOOO" ], middle = [ 4, " () " ], right = [ 
   anybeam( [ left, [ len(left[1]), 1, 45 ], middle, [ len(middle[1]), 1, 45], right ], height );
 }
 
-module _holes( b = 0, beams = [], height = beam_height ) {
+module anybeam_test(left = [ 7, "XOOOOOO" ], middle = [ 5, " (-) " ], right = [ 3, "OOX" ], height = beam_height) {
+  anybeam( [ left, [ len(left[1]), 1, 45 ], middle, [ len(middle[1]), 1, 45], right ], height );
+}
+
+
+//
+// Support Modules
+
+//
+// Layout beam holes. 
+// 
+module ab_holes( b = 0, beams = [], height = beam_height ) {
   beam = beams[b];
   connection = beams[b-1];
   next_beam = beams[b+2];
-
 
   if( connection ) {
     if( next_beam ) {
     translate( [ (connection[0]-1)*hole_separation, 0,  0 ] )
      rotate([0, 0, connection[2]])
       translate( [ -(connection[1]-1)*hole_separation, 0, 0 ] )
-        cut_holes( beam, height )
-          _holes( b+2, beams, height );          
+        ab_cut_holes( beam, height )
+          ab_holes( b+2, beams, height );          
     }
     else {
       translate( [ (connection[0]-1)*hole_separation, 0, 0 ] )
        rotate([0, 0, connection[2]])
         translate( [ -(connection[1]-1)*hole_separation, 0, 0 ] )
-          cut_holes( beam, height );
+          ab_cut_holes( beam, height );
     }
   }
   else {
     if( next_beam ) {
-      cut_holes( beam, height )
-        _holes( b+2, beams, height );            
+      ab_cut_holes( beam, height )
+        ab_holes( b+2, beams, height );            
     }
     else {
-      cut_holes( beam, height );              
+      ab_cut_holes( beam, height );              
     }
   }
 }
 
-module _beams( b = 0, beams = [], height = beam_height ) {
+//
+// Layout solid beams.
+//
+module ab_beams( b = 0, beams = [], height = beam_height ) {
+
   beam = beams[b];
   connection = beams[b-1];
   next_beam = beams[b+2];
@@ -137,28 +151,32 @@ module _beams( b = 0, beams = [], height = beam_height ) {
     translate( [ (connection[0]-1)*hole_separation, 0, 0 ] )
      rotate([0, 0, connection[2]])
       translate( [ -(connection[1]-1)*hole_separation, 0, 0 ] )
-        solid_beam( beam, height )
-          _beams( b+2, beams, height );          
+        ab_solid_beam( beam, height )
+          ab_beams( b+2, beams, height );          
     }
     else {
       translate( [ (connection[0]-1)*hole_separation, 0, 0 ] )
        rotate([0, 0, connection[2]])
         translate( [ -(connection[1]-1)*hole_separation, 0, 0 ] )
-          solid_beam( beam, height );
+          ab_solid_beam( beam, height );
     }
   }
   else {
     if( next_beam ) {
-      solid_beam( beam, height )
-        _beams( b+2, beams, height );            
+      ab_solid_beam( beam, height )
+        ab_beams( b+2, beams, height );            
     }
     else {
-      solid_beam( beam, height );              
+      ab_solid_beam( beam, height );              
     }
   }
 }
 
-module solid_beam( beam = [ 5, "OOOO" ], beam_height=7.8 ) {
+
+//
+// A single solid beam.
+//
+module ab_solid_beam( beam = [ 5, "OOOO" ], beam_height=7.8 ) {
   beam_length = (beam[0]-1)*hole_separation;
     union() {
       translate( [beam_length/2,0,0] ) {
@@ -174,43 +192,44 @@ module solid_beam( beam = [ 5, "OOOO" ], beam_height=7.8 ) {
     }
 }
 
-module cut_holes( beam = [ 5, "OOOO" ], beam_height=7.8 ) {
+module ab_cut_holes( beam = [ 5, "OOOO" ], beam_height=7.8 ) {
   beam_length = (beam[0]-1)*hole_separation;
   holes = beam[0]-1;
   layout = beam[1];
-    union() {
-    translate( [beam_length/2,0,0] ) {
 
-    for (hole = [0:1:holes]) {
+  union() {
+    translate( [beam_length/2,0,0] ) {
+      for (hole = [0:1:holes]) {
         if( layout == "" ) {
-          cut_hole( -beam_length/2+hole*hole_separation, beam_height );
+          ab_cut_hole( -beam_length/2+hole*hole_separation, beam_height );
         }
         else {
           if( layout[hole] == "O" ) {
-            cut_hole( -beam_length/2+hole*hole_separation, beam_height );              
+            ab_cut_hole( -beam_length/2+hole*hole_separation, beam_height );              
           } 
           if( layout[hole] == "(" ) {
-            cut_left_slot( -beam_length/2+hole*hole_separation, beam_height );              
+            ab_cut_left_slot( -beam_length/2+hole*hole_separation, beam_height );              
           } 
           if( layout[hole] == ")" ) {
-            cut_right_slot( -beam_length/2+hole*hole_separation, beam_height );              
+            ab_cut_right_slot( -beam_length/2+hole*hole_separation, beam_height );              
           } 
           if( layout[hole] == "X" ) {
-            cut_axle( -beam_length/2+hole*hole_separation, beam_height, first = (hole==0), last = (hole==holes) );
+            ab_cut_axle( -beam_length/2+hole*hole_separation, beam_height, first = (hole==0), last = (hole==holes) );
           } 
           if( layout[hole] == "-" ) {
-            cut_slot( -beam_length/2+hole*hole_separation, beam_height, first = (hole==0), last = (hole==holes) );
-          } 
+            ab_cut_slot( -beam_length/2+hole*hole_separation, beam_height, first = (hole==0), last = (hole==holes) );
+          }
+          // Any other letter is a space.
         }
+      }
     }
-  }
     if( $children ) children(0);
-  } 
+  }
 }
 
-module cut_left_slot(x,beam_height, first = false, last = false) {
+module ab_cut_left_slot(x,beam_height, first = false, last = false) {
   union() {
-    cut_hole(x,beam_height);
+    ab_cut_hole(x,beam_height);
 
     translate([x+hole_separation/4, 0, 0]) {
       cube([hole_separation/2+.05,hole_inside_diameter,beam_height+2], center = true);
@@ -224,8 +243,8 @@ module cut_left_slot(x,beam_height, first = false, last = false) {
   }
 }
 
-module cut_right_slot(x,beam_height, first = false, last = false) {
-  cut_hole(x,beam_height);
+module ab_cut_right_slot(x,beam_height, first = false, last = false) {
+  ab_cut_hole(x,beam_height);
 
   translate([x-hole_separation/4, 0, 0]) {
     cube([hole_separation/2+.05,hole_inside_diameter,beam_height+2], center = true);
@@ -239,7 +258,7 @@ module cut_right_slot(x,beam_height, first = false, last = false) {
 }
 
 
-module cut_slot(x,beam_height, first = false, last = false) {
+module ab_cut_slot(x,beam_height, first = false, last = false) {
   translate([x, 0, 0]) {
     cube([hole_separation,hole_inside_diameter,beam_height+2], center = true);
 
@@ -251,7 +270,7 @@ module cut_slot(x,beam_height, first = false, last = false) {
   }  
 }
 
-module cut_axle(x,beam_height, first = false, last = false) {
+module ab_cut_axle(x,beam_height, first = false, last = false) {
   translate([x, 0, 0]) {
     if( first == true ) {
       cube([axle_gap,axle_length,beam_height+2], center = true);
@@ -270,19 +289,19 @@ module cut_axle(x,beam_height, first = false, last = false) {
   }
 }
 
-module cut_hole(x,beam_height) {
-  union() {
+module ab_cut_hole(x,beam_height) {
   translate([x, 0, 0]) {
-    cylinder(beam_height+2, hole_inside_diameter/2, hole_inside_diameter/2, center = true, $fn=100);
+    union() {
+      cylinder(beam_height+2, hole_inside_diameter/2, hole_inside_diameter/2, center = true, $fn=100);
 
-    translate([0,0,beam_height/2-hole_ring_depth/2+.5])
-      cylinder(hole_ring_depth+1, hole_ring_dia/2, hole_ring_dia/2, center = true, $fn=100);     
+      translate([0,0,beam_height/2-hole_ring_depth/2+.5])
+        cylinder(hole_ring_depth+1, hole_ring_dia/2, hole_ring_dia/2, center = true, $fn=100);     
 
-    translate([0,0,-(beam_height/2-hole_ring_depth/2+.5)])
-      difference() {
-        cylinder(hole_ring_depth+1, hole_ring_dia/2, hole_ring_dia/2, center = true, $fn=100);
-        cylinder(hole_ring_depth+1, hole_inside_diameter/2+.15, hole_inside_diameter/2+.15, center = true, $fn=100);
+      translate([0,0,-(beam_height/2-hole_ring_depth/2+.5)])
+        difference() {
+          cylinder(hole_ring_depth+1, hole_ring_dia/2, hole_ring_dia/2, center = true, $fn=100);
+          cylinder(hole_ring_depth+1, hole_inside_diameter/2+.15, hole_inside_diameter/2+.15, center = true, $fn=100);
       }
-  }    
+    }    
   }
 }
