@@ -80,28 +80,27 @@ module anybeam( beams = [], height = beam_height ) {
 }
 
 module anybeam_tee( height = beam_height ) {
-  anybeam( [ [3, "OOO"], [ 2, 1, 90 ], [ 3, "OOO" ] ], height );
+  anybeam( [ "OOO", [ 2, 1, 90 ], "OOO" ], height );
 }
 
-module anybeam_143( left = [4, "XOOO"], right = [ 6, "OOOOOX" ], height = beam_height ) {
-  anybeam( [ left, [ len(left[1]), 1, 53.13 ], right ], height );
+module anybeam_143( left = "XOOO", right = "OOOOOX", height = beam_height ) {
+  anybeam( [ left, [ len(left), 1, 53.13 ], right ], height );
 }
 
-module anybeam_90(left = [ 4, "XOOO" ], right = [ 2, "OO" ], height = beam_height) {
-  anybeam( [ left, [ len(left[1]), 1, 90 ], right ], height );
+module anybeam_90(left = "XOOO", right = "OO", height = beam_height) {
+  anybeam( [ left, [ len(left), 1, 90 ], right ], height );
 }
 
-module anybeam_135x2(left = [ 7, "XOOOOOO" ], middle = [ 4, " () " ], right = [ 3, "OOX" ], height = beam_height) {
-  anybeam( [ left, [ len(left[1]), 1, 45 ], middle, [ len(middle[1]), 1, 45], right ], height );
+module anybeam_135x2(left = "XOOOOOO", middle = " () ", right = "OOX", height = beam_height) {
+  anybeam( [ left, [ len(left), 1, 45 ], middle, [ len(middle), 1, 45], right ], height );
 }
 
 //
-// Test beam that uses all features
+// Test beam that uses all features.
 //
-module anybeam_test(left = [ 7, "XOOOOOO" ], middle = [ 5, "O(-) " ], right = [ 3, "OOX" ], height = beam_height) {
-  anybeam( [ left, [ len(left[1]), 3, 45 ], middle, [ len(middle[1]), 1, 45], right ], height );
+module anybeam_test(left = "XOOOOOO", middle = "O(-) ", right = 3, height = beam_height) {
+  anybeam( [ left, [ len(left), 3, 45 ], middle, [ len(middle), 1, 45], right ], height );
 }
-
 
 //
 // Support Modules
@@ -180,10 +179,12 @@ module ab_beams( beams = [], height = beam_height, b = 0 ) {
 //
 // A single solid beam.
 //
-module ab_solid_beam( beam = [ 5, "OOOO" ], beam_height=7.8 ) {
-  beam_length = (beam[0]-1)*hole_separation;
-    union() {
-      translate( [beam_length/2,0,0] ) {
+module ab_solid_beam( beam = "OOOO", beam_height=7.8 ) {
+  holes = len(beam) ? len(beam)-1 : beam-1;
+  beam_length = holes*hole_separation;
+
+  union() {
+    translate( [beam_length/2,0,0] ) {
       cube( [ beam_length, beam_width, beam_height ], center=true );
 
       translate( [-beam_length/2, 0, 0] )
@@ -192,14 +193,14 @@ module ab_solid_beam( beam = [ 5, "OOOO" ], beam_height=7.8 ) {
         cylinder( r = beam_width/2, beam_height, center=true, $fn=100 );
       }
 
-      if( $children ) children(0);
-    }
+    if( $children ) children(0);
+  }
 }
 
-module ab_beam_holes( beam = [ 5, "OOOO" ], beam_height=7.8 ) {
-  beam_length = (beam[0]-1)*hole_separation;
-  holes = beam[0]-1;
-  layout = beam[1];
+module ab_beam_holes( beam = "OOOO", beam_height=7.8 ) {
+  holes = len(beam)-1;
+  beam_length = holes*hole_separation;
+  layout = beam;
 
   for (hole = [0:1:holes]) {
     translate( [hole*hole_separation,0,0] ) {
