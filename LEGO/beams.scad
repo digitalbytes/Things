@@ -95,13 +95,17 @@ module anybeam_135x2(left = [ 7, "XOOOOOO" ], middle = [ 4, " () " ], right = [ 
   anybeam( [ left, [ len(left[1]), 1, 45 ], middle, [ len(middle[1]), 1, 45], right ], height );
 }
 
-module anybeam_test(left = [ 7, "XOOOOOO" ], middle = [ 5, " (-) " ], right = [ 3, "OOX" ], height = beam_height) {
-  anybeam( [ left, [ len(left[1]), 1, 45 ], middle, [ len(middle[1]), 1, 45], right ], height );
+//
+// Test beam that uses all features
+//
+module anybeam_test(left = [ 7, "XOOOOOO" ], middle = [ 5, "O(-) " ], right = [ 3, "OOX" ], height = beam_height) {
+  anybeam( [ left, [ len(left[1]), 3, 45 ], middle, [ len(middle[1]), 1, 45], right ], height );
 }
 
 
 //
 // Support Modules
+//
 
 //
 // Layout beam holes. 
@@ -197,56 +201,52 @@ module ab_cut_holes( beam = [ 5, "OOOO" ], beam_height=7.8 ) {
   holes = beam[0]-1;
   layout = beam[1];
 
-  union() {
-    translate( [beam_length/2,0,0] ) {
-      for (hole = [0:1:holes]) {
-        if( layout == "" ) {
-          ab_cut_hole( -beam_length/2+hole*hole_separation, beam_height );
+  for (hole = [0:1:holes]) {
+    translate( [hole*hole_separation,0,0] ) {
+      if( layout == "" ) {
+        ab_cut_hole( beam_height );
+      }
+      else {
+        if( layout[hole] == "O" ) {
+          ab_cut_hole( beam_height );              
+        } 
+        if( layout[hole] == "(" ) {
+          ab_cut_left_slot( beam_height );              
+        } 
+        if( layout[hole] == ")" ) {
+          ab_cut_right_slot( beam_height );              
+        } 
+        if( layout[hole] == "X" ) {
+          ab_cut_axle( beam_height, first = (hole==0), last = (hole==holes) );
+        } 
+        if( layout[hole] == "-" ) {
+          ab_cut_slot( beam_height, first = (hole==0), last = (hole==holes) );
         }
-        else {
-          if( layout[hole] == "O" ) {
-            ab_cut_hole( -beam_length/2+hole*hole_separation, beam_height );              
-          } 
-          if( layout[hole] == "(" ) {
-            ab_cut_left_slot( -beam_length/2+hole*hole_separation, beam_height );              
-          } 
-          if( layout[hole] == ")" ) {
-            ab_cut_right_slot( -beam_length/2+hole*hole_separation, beam_height );              
-          } 
-          if( layout[hole] == "X" ) {
-            ab_cut_axle( -beam_length/2+hole*hole_separation, beam_height, first = (hole==0), last = (hole==holes) );
-          } 
-          if( layout[hole] == "-" ) {
-            ab_cut_slot( -beam_length/2+hole*hole_separation, beam_height, first = (hole==0), last = (hole==holes) );
-          }
-          // Any other letter is a space.
-        }
+        // Any other letter is a space.
       }
     }
-    if( $children ) children(0);
   }
+  if( $children ) children(0);
 }
 
-module ab_cut_left_slot(x,beam_height, first = false, last = false) {
-  union() {
-    ab_cut_hole(x,beam_height);
+module ab_cut_left_slot(beam_height) {
+  ab_cut_hole(beam_height);
 
-    translate([x+hole_separation/4, 0, 0]) {
-      cube([hole_separation/2+.05,hole_inside_diameter,beam_height+2], center = true);
+  translate([hole_separation/4, 0, 0]) {
+    cube([hole_separation/2+.05,hole_inside_diameter,beam_height+2], center = true);
 
-      translate([0,0,beam_height/2-hole_ring_depth/2+.5])
-        cube([hole_separation/2+0.05, hole_ring_dia, hole_ring_depth+1,], center = true);     
+    translate([0,0,beam_height/2-hole_ring_depth/2+.5])
+      cube([hole_separation/2+0.05, hole_ring_dia, hole_ring_depth+1,], center = true);     
 
-      translate([0,0,-(beam_height/2-hole_ring_depth/2+.5)])
-        cube([hole_separation/2+0.05, hole_ring_dia, hole_ring_depth+1], center = true);     
-    }  
-  }
+    translate([0,0,-(beam_height/2-hole_ring_depth/2+.5)])
+      cube([hole_separation/2+0.05, hole_ring_dia, hole_ring_depth+1], center = true);     
+  }  
 }
 
-module ab_cut_right_slot(x,beam_height, first = false, last = false) {
-  ab_cut_hole(x,beam_height);
+module ab_cut_right_slot(beam_height) {
+  ab_cut_hole(beam_height);
 
-  translate([x-hole_separation/4, 0, 0]) {
+  translate([-hole_separation/4, 0, 0]) {
     cube([hole_separation/2+.05,hole_inside_diameter,beam_height+2], center = true);
 
     translate([0,0,beam_height/2-hole_ring_depth/2+.5])
@@ -258,50 +258,42 @@ module ab_cut_right_slot(x,beam_height, first = false, last = false) {
 }
 
 
-module ab_cut_slot(x,beam_height, first = false, last = false) {
-  translate([x, 0, 0]) {
-    cube([hole_separation,hole_inside_diameter,beam_height+2], center = true);
+module ab_cut_slot(beam_height, first = false, last = false) {
+  cube([hole_separation,hole_inside_diameter,beam_height+2], center = true);
 
-    translate([0,0,beam_height/2-hole_ring_depth/2+.5])
-      cube([hole_separation, hole_ring_dia, hole_ring_depth+1,], center = true);     
+  translate([0,0,beam_height/2-hole_ring_depth/2+.5])
+    cube([hole_separation, hole_ring_dia, hole_ring_depth+1,], center = true);     
 
-    translate([0,0,-(beam_height/2-hole_ring_depth/2+.5)])
-      cube([hole_separation, hole_ring_dia, hole_ring_depth+1], center = true);     
-  }  
+  translate([0,0,-(beam_height/2-hole_ring_depth/2+.5)])
+    cube([hole_separation, hole_ring_dia, hole_ring_depth+1], center = true);     
 }
 
-module ab_cut_axle(x,beam_height, first = false, last = false) {
-  translate([x, 0, 0]) {
-    if( first == true ) {
-      cube([axle_gap,axle_length,beam_height+2], center = true);
-        translate([+.5,0,0])
-        cube([axle_length+1,axle_gap,beam_height+2], center = true);    
-    }
-    if( last == true ) {
-      cube([axle_gap,axle_length,beam_height+2], center = true);
-        translate([-.5,0,0])
-        cube([axle_length+1,axle_gap,beam_height+2], center = true);    
-    }
-    if( first == false && last == false ) {
-      cube([axle_gap,axle_length,beam_height+2], center = true);
-        cube([axle_length,axle_gap,beam_height+2], center = true);    
-    }
+module ab_cut_axle(beam_height, first = false, last = false) {
+  if( first == true ) {
+    cube([axle_gap,axle_length,beam_height+2], center = true);
+      translate([+.5,0,0])
+      cube([axle_length+1,axle_gap,beam_height+2], center = true);    
+  }
+  if( last == true ) {
+    cube([axle_gap,axle_length,beam_height+2], center = true);
+      translate([-.5,0,0])
+      cube([axle_length+1,axle_gap,beam_height+2], center = true);    
+  }
+  if( first == false && last == false ) {
+    cube([axle_gap,axle_length,beam_height+2], center = true);
+      cube([axle_length,axle_gap,beam_height+2], center = true);    
   }
 }
 
-module ab_cut_hole(x,beam_height) {
-  translate([x, 0, 0]) {
-    union() {
-      cylinder(beam_height+2, hole_inside_diameter/2, hole_inside_diameter/2, center = true, $fn=100);
+module ab_cut_hole(beam_height) {
+  cylinder(beam_height+2, hole_inside_diameter/2, hole_inside_diameter/2, center = true, $fn=100);
 
-      translate([0,0,beam_height/2-hole_ring_depth/2+.5])
-        cylinder(hole_ring_depth+1, hole_ring_dia/2, hole_ring_dia/2, center = true, $fn=100);     
+  translate([0,0,beam_height/2-hole_ring_depth/2+.5])
+    cylinder(hole_ring_depth+1, hole_ring_dia/2, hole_ring_dia/2, center = true, $fn=100);     
 
-      translate([0,0,-(beam_height/2-hole_ring_depth/2+.5)])
-        difference() {
-          cylinder(hole_ring_depth+1, hole_ring_dia/2, hole_ring_dia/2, center = true, $fn=100);
-          cylinder(hole_ring_depth+1, hole_inside_diameter/2+.15, hole_inside_diameter/2+.15, center = true, $fn=100);
-      }
-    }    
+  translate([0,0,-(beam_height/2-hole_ring_depth/2+.5)])
+    difference() {
+      cylinder(hole_ring_depth+1, hole_ring_dia/2, hole_ring_dia/2, center = true, $fn=100);
+      cylinder(hole_ring_depth+1, hole_inside_diameter/2+.15, hole_inside_diameter/2+.15, center = true, $fn=100);
   }
 }
