@@ -62,25 +62,25 @@ AB_AXLE_GAP = 1.95;
 AB_AXLE_LENGTH = 5.1;
 
 AB_BEAM_HEIGHT = 7.8;
-AB_THIN_BEAM_HEIGHT = beam_height/2;
+AB_THIN_BEAM_HEIGHT = AB_BEAM_HEIGHT/3;
 
 // From roipoussiere's string functions - https://www.thingiverse.com/thing:202724
 function ab_fill(car, nb_occ, out="") = (nb_occ == 0) ? out : str(ab_fill(car, nb_occ-1, out), car);
 
 // anybeam( [ "XOOO", [ 4, 1, 53.13 ],   "OOO()", [ 5, 1, -53.13 ],   "(-)X" ], AB_THIN_BEAM_HEIGHT )
 
-// anybeam( [ "XOOX", [ 4, 1, 90 ], "XOOOOX", [ 6, 1, 90 ], "XOOX", [ 4, 1, 90 ], "XOOOOX" ] );
+anybeam( [ "XOOX", [ 4, 1, 90 ], "XOOOOX", [ 6, 1, 90 ], "XOOX", [ 4, 1, 90 ], "XOOOOX" ], 1/3);
 
-module anybeam( beams = [], height = AB_BEAM_HEIGHT ) {
+module anybeam( beams = [], height = 1 ) {
   translate([0, 0, height/2]) {
     difference() {
-      ab_beams( beams, height );
-      ab_holes( beams, height );
+      ab_beams( beams, height * AB_BEAM_HEIGHT );
+      ab_holes( beams, height * AB_BEAM_HEIGHT );
     }
   }
 }
 
-module anybeam_straight( holes = 10, height = AB_BEAM_HEIGHT ) {
+module anybeam_straight( holes = 10, height = 1 ) {
   if( len(holes )) {
     anybeam( [ holes ], height);    
   }
