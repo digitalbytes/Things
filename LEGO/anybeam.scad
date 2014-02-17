@@ -67,20 +67,17 @@ AB_THIN_BEAM_HEIGHT = beam_height/2;
 // From roipoussiere's string functions - https://www.thingiverse.com/thing:202724
 function ab_fill(car, nb_occ, out="") = (nb_occ == 0) ? out : str(ab_fill(car, nb_occ-1, out), car);
 
-anybeam( 
-[ "XOOO", [ 4, 1, 53.13 ], 
-  "OOO()", [ 5, 1, -53.13 ], 
-  "(-)X" ], AB_THIN_BEAM_HEIGHT
-)
+// anybeam( [ "XOOO", [ 4, 1, 53.13 ],   "OOO()", [ 5, 1, -53.13 ],   "(-)X" ], AB_THIN_BEAM_HEIGHT )
 
-anybeam_135x2();
+// anybeam( [ "XOOX", [ 4, 1, 90 ], "XOOOOX", [ 6, 1, 90 ], "XOOX", [ 4, 1, 90 ], "XOOOOX" ] );
 
 module anybeam( beams = [], height = AB_BEAM_HEIGHT ) {
-  translate([0, 0, beam_height/2])
+  translate([0, 0, height/2]) {
     difference() {
       ab_beams( beams, height );
       ab_holes( beams, height );
     }
+  }
 }
 
 module anybeam_straight( holes = 10, height = AB_BEAM_HEIGHT ) {
