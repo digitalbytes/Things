@@ -4,28 +4,31 @@
 // This library provides an anybeam() module that can be used to create beams
 // with a variaty of hole, axle and slot patterns using a simple declaritive syntax. 
 // 
-// Pin holes, slots and axle holes of a beam are specified with a string. Each
-// character in the string represents one of the following hole types.
+// 
+// Beam String
+//
+// A beam is speficied with a sequence of characters, each representing a hole
+// type in the beam.
 //
 //  O  Pin hole
 //  X  Axle hole
 //  (  Half hole with a slot on the right.
 //  )  Half hole with the slot on the left.
-//  -  A full width slot, use with (, - and ) to create long slots with half hole ends like "(---)" or "()"
-//     (space) Skip this hole.
+//  -  (dash) A full width slot, use with ( and ) to create long slots with half hole ends like "(--)" (4 span slot) or "()" (2 span slot)
+//  .  (period) Skip this hole.
 //
-// Use the above symbols to represent the hole layout on the beam:
+// Use the above characters to represent the hole layout on the beam:
 //
 //   XOOOOX   - Size 6 beam with axle holes at the ends.
 //   OOXOO    - Size 5 beam with an axle hole in the middle.
 //   (---)OOO - Size 8 beam with a size 5 slot and three holes at the end.
 //
-// Between each beam is a connection that defines how the beams connect.
+// Between each beam is a connection vector that defines how the beams connect.
+//
+//   [ PREVIOUS_BEAM_HOLE, CURRENT_BEAM_HOLE, ANGLE ]
 //
 //  * Holes are numbered from 1 to N (the length of the beam) from left to right.
 //  * Angles are in degrees.
-//
-//   [ PREVIOUS_BEAM_HOLE, CURRENT_BEAM_HOLE, ANGLE ]
 //
 // Here is a standard 4x2 90 degree lift arm:
 //  
@@ -37,41 +40,35 @@
 // Fractional Hole Spacing
 //
 // Here is a 4x2 beam with the size 2 beam in the midde of the size 4 beam.
-// We use a space here so that we don't end up with a hole half way
-// down the size 4 beam. 
+// The space prevents a hole from appearing at the start of the beam where
+// the two overlap.
 //
 // Connecing hole 2.5 of the size 4 beam to hole 1 of the size 2 beam at 90 degrees.
 //
-//   [ "OOOO", [ 2.5, 1, 90 ], " O" ]
+//   [ "OOOO", [ 2.5, 1, 90 ], ".O" ]
 //
 
-hole_separation = 8.0;
-hole_inside_diameter = 5.4;
-stud_dia = 4.8;
-hole_ring_dia = 6.28;
-hole_ring_depth = 0.9;
-beam_width = 7.6;
-beam_height = 7.8;
-axle_gap = 1.95;
-axle_length = 5.1;
-thin_beam_height = beam_height/3;
+// From roipoussiere's string functions - https://www.thingiverse.com/thing:202724
+function ab_fill(car, nb_occ, out="") = (nb_occ == 0) ? out : str(ab_fill(car, nb_occ-1, out), car);
 
-// beam143(5,5);
 
-// anybeam( [ 
-//  [ 5, "X<->O" ], 
-//  [ 5, 1, 45 ], [ 5, "OOOOO" ], 
-//  [ 5, 3, 90 ], [ 5, "XXOXX" ],
-// ] );
+// Constants.
+AB_HOLE_SPACING = 8.0;
+AB_HOLE_INSIDE_DIAMETER = 5.4;
+AB_STUD_DIAMETER = 4.8;
+AB_HOLE_RING_DIAMETER = 6.28;
+AB_HOLE_RING_DEPTH = 0.9;
+AB_BEAM_WIDTH = 7.6;
+AB_AXLE_GAP = 1.95;
+AB_AXLE_LENGTH = 5.1;
 
-anybeam_test();
+AB_BEAM_HEIGHT = 7.8;
+AB_THIN_BEAM_HEIGHT = beam_height/3;
 
-//
-// beams = [ beam, connection, beam, connection, ... beam ]
-// beam = [ hole_count, hole_string  ] 
-//
 
-module anybeam( beams = [], height = beam_height ) {
+anybeam_straight( 7 );
+
+module anybeam( beams = [], height = AB_BEAM_HEIGHT ) {
   translate([0, 0, beam_height/2])
     difference() {
       ab_beams( beams, height );
@@ -79,26 +76,35 @@ module anybeam( beams = [], height = beam_height ) {
     }
 }
 
-module anybeam_tee( height = beam_height ) {
+module anybeam_straight( holes = 10, height = AB_BEAM_HEIGHT ) {
+  if( len(holes )) {
+    anybeam( [ holes ], height);    
+  }
+  else {
+    anybeam( [ ab_fill("O", holes ) ], height);    
+  }
+}
+
+module anybeam_tee( stem = "OOO", top = "OOO", height = AB_BEAM_HEIGHT ) {
   anybeam( [ "OOO", [ 2, 1, 90 ], "OOO" ], height );
 }
 
-module anybeam_143( left = "XOOO", right = "OOOOOX", height = beam_height ) {
+module anybeam_143( left = "XOOO", right = "OOOOOX", height = AB_BEAM_HEIGHT ) {
   anybeam( [ left, [ len(left), 1, 53.13 ], right ], height );
 }
 
-module anybeam_90(left = "XOOO", right = "OO", height = beam_height) {
+module anybeam_90(left = "XOOO", right = "OO", height = AB_BEAM_HEIGHT) {
   anybeam( [ left, [ len(left), 1, 90 ], right ], height );
 }
 
-module anybeam_135x2(left = "XOOOOOO", middle = " () ", right = "OOX", height = beam_height) {
+module anybeam_135x2(left = "XOOOOOO", middle = " () ", right = "OOX", height = AB_BEAM_HEIGHT) {
   anybeam( [ left, [ len(left), 1, 45 ], middle, [ len(middle), 1, 45], right ], height );
 }
 
 //
 // Test beam that uses all features.
 //
-module anybeam_test(left = "XOOOOOO", middle = "O(-) ", right = 3, height = beam_height) {
+module anybeam_test(left = "XOOOOOO", middle = "O(-) ", right = 3, height = AB_BEAM_HEIGHT) {
   anybeam( [ left, [ len(left), 3, 45 ], middle, [ len(middle), 1, 45], right ], height );
 }
 
@@ -109,23 +115,23 @@ module anybeam_test(left = "XOOOOOO", middle = "O(-) ", right = 3, height = beam
 //
 // Layout beam holes. 
 // 
-module ab_holes( beams = [], height = beam_height, b = 0 ) {
+module ab_holes( beams = [], height = AB_BEAM_HEIGHT, b = 0 ) {
   beam = beams[b];
   connection = beams[b-1];
   next_beam = beams[b+2];
 
   if( connection ) {
     if( next_beam ) {
-    translate( [ (connection[0]-1)*hole_separation, 0,  0 ] )
+    translate( [ (connection[0]-1)*AB_HOLE_SPACING, 0,  0 ] )
      rotate([0, 0, connection[2]])
-      translate( [ -(connection[1]-1)*hole_separation, 0, 0 ] )
+      translate( [ -(connection[1]-1)*AB_HOLE_SPACING, 0, 0 ] )
         ab_beam_holes( beam, height )
           ab_holes( beams, height, b+2 );          
     }
     else {
-      translate( [ (connection[0]-1)*hole_separation, 0, 0 ] )
+      translate( [ (connection[0]-1)*AB_HOLE_SPACING, 0, 0 ] )
        rotate([0, 0, connection[2]])
-        translate( [ -(connection[1]-1)*hole_separation, 0, 0 ] )
+        translate( [ -(connection[1]-1)*AB_HOLE_SPACING, 0, 0 ] )
           ab_beam_holes( beam, height );
     }
   }
@@ -143,7 +149,7 @@ module ab_holes( beams = [], height = beam_height, b = 0 ) {
 //
 // Layout solid beams.
 //
-module ab_beams( beams = [], height = beam_height, b = 0 ) {
+module ab_beams( beams = [], height = AB_BEAM_HEIGHT, b = 0 ) {
 
   beam = beams[b];
   connection = beams[b-1];
@@ -151,16 +157,16 @@ module ab_beams( beams = [], height = beam_height, b = 0 ) {
 
   if( connection ) {
     if( next_beam ) {
-    translate( [ (connection[0]-1)*hole_separation, 0, 0 ] )
+    translate( [ (connection[0]-1)*AB_HOLE_SPACING, 0, 0 ] )
      rotate([0, 0, connection[2]])
-      translate( [ -(connection[1]-1)*hole_separation, 0, 0 ] )
+      translate( [ -(connection[1]-1)*AB_HOLE_SPACING, 0, 0 ] )
         ab_solid_beam( beam, height )
           ab_beams( beams, height, b+2 );          
     }
     else {
-      translate( [ (connection[0]-1)*hole_separation, 0, 0 ] )
+      translate( [ (connection[0]-1)*AB_HOLE_SPACING, 0, 0 ] )
        rotate([0, 0, connection[2]])
-        translate( [ -(connection[1]-1)*hole_separation, 0, 0 ] )
+        translate( [ -(connection[1]-1)*AB_HOLE_SPACING, 0, 0 ] )
           ab_solid_beam( beam, height );
     }
   }
@@ -179,31 +185,31 @@ module ab_beams( beams = [], height = beam_height, b = 0 ) {
 //
 // A single solid beam.
 //
-module ab_solid_beam( beam = "OOOO", beam_height=7.8 ) {
+module ab_solid_beam( beam = "OOOO", beam_height = AB_BEAM_HEIGHT ) {
   holes = len(beam) ? len(beam)-1 : beam-1;
-  beam_length = holes*hole_separation;
+  beam_length = holes*AB_HOLE_SPACING;
 
   union() {
     translate( [beam_length/2,0,0] ) {
-      cube( [ beam_length, beam_width, beam_height ], center=true );
+      cube( [ beam_length, AB_BEAM_WIDTH, beam_height ], center=true );
 
       translate( [-beam_length/2, 0, 0] )
-        cylinder( r = beam_width/2, beam_height, center=true, $fn=100 );
+        cylinder( r = AB_BEAM_WIDTH/2, beam_height, center=true, $fn=100 );
       translate( [beam_length/2, 0, 0] )
-        cylinder( r = beam_width/2, beam_height, center=true, $fn=100 );
+        cylinder( r = AB_BEAM_WIDTH/2, beam_height, center=true, $fn=100 );
       }
 
     if( $children ) children(0);
   }
 }
 
-module ab_beam_holes( beam = "OOOO", beam_height=7.8 ) {
+module ab_beam_holes( beam = "OOOO", beam_height = AB_BEAM_HEIGHT ) {
   holes = len(beam)-1;
-  beam_length = holes*hole_separation;
+  beam_length = holes*AB_HOLE_SPACING;
   layout = beam;
 
   for (hole = [0:1:holes]) {
-    translate( [hole*hole_separation,0,0] ) {
+    translate( [hole*AB_HOLE_SPACING,0,0] ) {
       if( layout == "" ) {
         ab_hole_pin( beam_height );
       }
@@ -230,71 +236,71 @@ module ab_beam_holes( beam = "OOOO", beam_height=7.8 ) {
   if( $children ) children(0);
 }
 
-module ab_hole_pin(beam_height) {
-  cylinder(beam_height+2, hole_inside_diameter/2, hole_inside_diameter/2, center = true, $fn=100);
+module ab_hole_pin( beam_height = AB_BEAM_HEIGHT ) {
+  cylinder(beam_height+2, AB_HOLE_INSIDE_DIAMETER/2, AB_HOLE_INSIDE_DIAMETER/2, center = true, $fn=100);
 
-  translate([0,0,beam_height/2-hole_ring_depth/2+.5])
-    cylinder(hole_ring_depth+1, hole_ring_dia/2, hole_ring_dia/2, center = true, $fn=100);     
+  translate([0,0,beam_height/2-AB_HOLE_RING_DEPTH/2+.5])
+    cylinder(AB_HOLE_RING_DEPTH+1, AB_HOLE_RING_DIAMETER/2, AB_HOLE_RING_DIAMETER/2, center = true, $fn=100);     
 
-  translate([0,0,-(beam_height/2-hole_ring_depth/2+.5)])
+  translate([0,0,-(beam_height/2-AB_HOLE_RING_DEPTH/2+.5)])
     difference() {
-      cylinder(hole_ring_depth+1, hole_ring_dia/2, hole_ring_dia/2, center = true, $fn=100);
-      cylinder(hole_ring_depth+1, hole_inside_diameter/2+.15, hole_inside_diameter/2+.15, center = true, $fn=100);
+      cylinder(AB_HOLE_RING_DEPTH+1, AB_HOLE_RING_DIAMETER/2, AB_HOLE_RING_DIAMETER/2, center = true, $fn=100);
+      cylinder(AB_HOLE_RING_DEPTH+1, AB_HOLE_INSIDE_DIAMETER/2+.15, AB_HOLE_INSIDE_DIAMETER/2+.15, center = true, $fn=100);
   }
 }
 
-module ab_hole_left_slot(beam_height) {
+module ab_hole_left_slot( beam_height = AB_BEAM_HEIGHT ) {
   ab_hole_pin(beam_height);
 
-  translate([hole_separation/4, 0, 0]) {
-    cube([hole_separation/2+.05,hole_inside_diameter,beam_height+2], center = true);
+  translate([AB_HOLE_SPACING/4, 0, 0]) {
+    cube([AB_HOLE_SPACING/2+.05,AB_HOLE_INSIDE_DIAMETER,beam_height+2], center = true);
 
-    translate([0,0,beam_height/2-hole_ring_depth/2+.5])
-      cube([hole_separation/2+0.05, hole_ring_dia, hole_ring_depth+1,], center = true);     
+    translate([0,0,beam_height/2-AB_HOLE_RING_DEPTH/2+.5])
+      cube([AB_HOLE_SPACING/2+0.05, AB_HOLE_RING_DIAMETER, AB_HOLE_RING_DEPTH+1,], center = true);     
 
-    translate([0,0,-(beam_height/2-hole_ring_depth/2+.5)])
-      cube([hole_separation/2+0.05, hole_ring_dia, hole_ring_depth+1], center = true);     
+    translate([0,0,-(beam_height/2-AB_HOLE_RING_DEPTH/2+.5)])
+      cube([AB_HOLE_SPACING/2+0.05, AB_HOLE_RING_DIAMETER, AB_HOLE_RING_DEPTH+1], center = true);     
   }  
 }
 
-module ab_hole_right_slot(beam_height) {
+module ab_hole_right_slot( beam_height = AB_BEAM_HEIGHT ) {
   ab_hole_pin(beam_height);
 
-  translate([-hole_separation/4, 0, 0]) {
-    cube([hole_separation/2+.05,hole_inside_diameter,beam_height+2], center = true);
+  translate([-AB_HOLE_SPACING/4, 0, 0]) {
+    cube([AB_HOLE_SPACING/2+.05,AB_HOLE_INSIDE_DIAMETER,beam_height+2], center = true);
 
-    translate([0,0,beam_height/2-hole_ring_depth/2+.5])
-      cube([hole_separation/2+0.05, hole_ring_dia, hole_ring_depth+1,], center = true);     
+    translate([0,0,beam_height/2-AB_HOLE_RING_DEPTH/2+.5])
+      cube([AB_HOLE_SPACING/2+0.05, AB_HOLE_RING_DIAMETER, AB_HOLE_RING_DEPTH+1,], center = true);     
 
-    translate([0,0,-(beam_height/2-hole_ring_depth/2+.5)])
-      cube([hole_separation/2+0.05, hole_ring_dia, hole_ring_depth+1], center = true);     
+    translate([0,0,-(beam_height/2-AB_HOLE_RING_DEPTH/2+.5)])
+      cube([AB_HOLE_SPACING/2+0.05, AB_HOLE_RING_DIAMETER, AB_HOLE_RING_DEPTH+1], center = true);     
   }  
 }
 
-module ab_hole_slot(beam_height) {
-  cube([hole_separation,hole_inside_diameter,beam_height+2], center = true);
+module ab_hole_slot( beam_height = AB_BEAM_HEIGHT ) {
+  cube([AB_HOLE_SPACING,AB_HOLE_INSIDE_DIAMETER,beam_height+2], center = true);
 
-  translate([0,0,beam_height/2-hole_ring_depth/2+.5])
-    cube([hole_separation, hole_ring_dia, hole_ring_depth+1,], center = true);     
+  translate([0,0,beam_height/2-AB_HOLE_RING_DEPTH/2+.5])
+    cube([AB_HOLE_SPACING, AB_HOLE_RING_DIAMETER, AB_HOLE_RING_DEPTH+1,], center = true);     
 
-  translate([0,0,-(beam_height/2-hole_ring_depth/2+.5)])
-    cube([hole_separation, hole_ring_dia, hole_ring_depth+1], center = true);     
+  translate([0,0,-(beam_height/2-AB_HOLE_RING_DEPTH/2+.5)])
+    cube([AB_HOLE_SPACING, AB_HOLE_RING_DIAMETER, AB_HOLE_RING_DEPTH+1], center = true);     
 }
 
-module ab_hole_axle(beam_height, first = false, last = false) {
+module ab_hole_axle( beam_height = AB_BEAM_HEIGHT , first = false, last = false) {
   if( first == true ) {
-    cube([axle_gap,axle_length,beam_height+2], center = true);
+    cube([AB_AXLE_GAP,AB_AXLE_LENGTH,beam_height+2], center = true);
       translate([+.5,0,0])
-      cube([axle_length+1,axle_gap,beam_height+2], center = true);    
+      cube([AB_AXLE_LENGTH+1,AB_AXLE_GAP,beam_height+2], center = true);    
   }
   if( last == true ) {
-    cube([axle_gap,axle_length,beam_height+2], center = true);
+    cube([AB_AXLE_GAP,AB_AXLE_LENGTH,beam_height+2], center = true);
       translate([-.5,0,0])
-      cube([axle_length+1,axle_gap,beam_height+2], center = true);    
+      cube([AB_AXLE_LENGTH+1,AB_AXLE_GAP,beam_height+2], center = true);    
   }
   if( first == false && last == false ) {
-    cube([axle_gap,axle_length,beam_height+2], center = true);
-      cube([axle_length,axle_gap,beam_height+2], center = true);    
+    cube([AB_AXLE_GAP,AB_AXLE_LENGTH,beam_height+2], center = true);
+      cube([AB_AXLE_LENGTH,AB_AXLE_GAP,beam_height+2], center = true);    
   }
 }
 
