@@ -1,42 +1,42 @@
 //
-// Anybeam Library
-//
+// Anybeam OpenSCAD Library
+// 
 // This library provides an anybeam() module that can be used to create beams
 // with a variaty of hole, axle and slot patterns using a simple declaritive syntax. 
 // 
 // 
 // Beam String
-//
+// 
 // A beam is speficied with a sequence of characters, each representing a hole
 // type in the beam.
-//
+// 
 //  O  Pin hole
 //  X  Axle hole
 //  (  Half hole with a slot on the right.
 //  )  Half hole with the slot on the left.
 //  -  (dash) A full width slot, use with ( and ) to create long slots with half hole ends like "(--)" (4 span slot) or "()" (2 span slot)
 //  .  (period) Skip this hole.
-//
+// 
 // Use the above characters to represent the hole layout on the beam:
-//
+// 
 //   XOOOOX   - Size 6 beam with axle holes at the ends.
 //   OOXOO    - Size 5 beam with an axle hole in the middle.
 //   (---)OOO - Size 8 beam with a size 5 slot and three holes at the end.
-//
+// 
 // Between each beam is a connection vector that defines how the beams connect.
-//
+// 
 //   [ PREVIOUS_BEAM_HOLE, CURRENT_BEAM_HOLE, ANGLE ]
-//
+// 
 //  * Holes are numbered from 1 to N (the length of the beam) from left to right.
 //  * Angles are in degrees.
-//
+// 
 // Here is a standard 4x2 90 degree lift arm:
 //  
-//   [ "XOOO", [ 4, 1, 90 ], [ "OO"] ]
-//
+//   [ "XOOO", [ 4, 1, 90 ], "OO" ]
+// 
 // The connection hole specifier may includ a fractional part.
-//
-//
+// 
+// 
 // Fractional Hole Spacing
 //
 // Here is a 4x2 beam with the size 2 beam in the midde of the size 4 beam.
@@ -47,9 +47,8 @@
 //
 //   [ "OOOO", [ 2.5, 1, 90 ], ".O" ]
 //
-
-// From roipoussiere's string functions - https://www.thingiverse.com/thing:202724
-function ab_fill(car, nb_occ, out="") = (nb_occ == 0) ? out : str(ab_fill(car, nb_occ-1, out), car);
+//
+// Examples:
 
 
 // Constants.
@@ -63,10 +62,18 @@ AB_AXLE_GAP = 1.95;
 AB_AXLE_LENGTH = 5.1;
 
 AB_BEAM_HEIGHT = 7.8;
-AB_THIN_BEAM_HEIGHT = beam_height/3;
+AB_THIN_BEAM_HEIGHT = beam_height/2;
 
+// From roipoussiere's string functions - https://www.thingiverse.com/thing:202724
+function ab_fill(car, nb_occ, out="") = (nb_occ == 0) ? out : str(ab_fill(car, nb_occ-1, out), car);
 
-anybeam_straight( 7 );
+anybeam( 
+[ "XOOO", [ 4, 1, 53.13 ], 
+  "OOO()", [ 5, 1, -53.13 ], 
+  "(-)X" ], AB_THIN_BEAM_HEIGHT
+)
+
+anybeam_135x2();
 
 module anybeam( beams = [], height = AB_BEAM_HEIGHT ) {
   translate([0, 0, beam_height/2])
@@ -199,7 +206,7 @@ module ab_solid_beam( beam = "OOOO", beam_height = AB_BEAM_HEIGHT ) {
         cylinder( r = AB_BEAM_WIDTH/2, beam_height, center=true, $fn=100 );
       }
 
-    if( $children ) children(0);
+    if( $children ) child(0);
   }
 }
 
@@ -233,7 +240,7 @@ module ab_beam_holes( beam = "OOOO", beam_height = AB_BEAM_HEIGHT ) {
       }
     }
   }
-  if( $children ) children(0);
+  if( $children ) child(0);
 }
 
 module ab_hole_pin( beam_height = AB_BEAM_HEIGHT ) {
@@ -243,10 +250,7 @@ module ab_hole_pin( beam_height = AB_BEAM_HEIGHT ) {
     cylinder(AB_HOLE_RING_DEPTH+1, AB_HOLE_RING_DIAMETER/2, AB_HOLE_RING_DIAMETER/2, center = true, $fn=100);     
 
   translate([0,0,-(beam_height/2-AB_HOLE_RING_DEPTH/2+.5)])
-    difference() {
-      cylinder(AB_HOLE_RING_DEPTH+1, AB_HOLE_RING_DIAMETER/2, AB_HOLE_RING_DIAMETER/2, center = true, $fn=100);
-      cylinder(AB_HOLE_RING_DEPTH+1, AB_HOLE_INSIDE_DIAMETER/2+.15, AB_HOLE_INSIDE_DIAMETER/2+.15, center = true, $fn=100);
-  }
+    cylinder(AB_HOLE_RING_DEPTH+1, AB_HOLE_RING_DIAMETER/2, AB_HOLE_RING_DIAMETER/2, center = true, $fn=100);     
 }
 
 module ab_hole_left_slot( beam_height = AB_BEAM_HEIGHT ) {
