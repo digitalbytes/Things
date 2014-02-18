@@ -49,7 +49,7 @@ For example, a 4x2 right angle lift arm:
 
 The connection hole specifier may include a fractional part. A 4x2 beam with the size 2 beam attached at the mid point of the size 4 beam (2.5 holes). Note the use of the period in the second beam to avoid hole overlap between the 2nd and 3rd hole of the first beam.
 
-    [ "XOOO", [ 2.5, 1, 90 ], ".O" ]  
+    [ "XOOO", [ 2.5, 1, 90 ], "_O" ]  
 
 Complete Examples
 ----
@@ -58,8 +58,8 @@ A size 12 beam with two 45 degree bends at holes 7 and 10 and a size two slot be
 
     anybeam( [ "XOOOOOO", [ 7, 1, 45 ], " () ", [ 4, 1, 45 ], "OOO" ] )
 
-A cross 5x5 cross with an axle hole in the centre.
+A cross 5x5 1/3 cross with an axle hole in the centre.
 
-    anybeam( [ "OOXOO", [ 3, 3, 90 ], "OOXOO" ] )
+    anybeam( [ "OOXOO", [ 3, 3, 90 ], "OOXOO" ], 1/3 )
 
 
