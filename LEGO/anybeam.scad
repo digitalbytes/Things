@@ -90,26 +90,26 @@ module anybeam_straight( holes = 10, height = 1 ) {
   }
 }
 
-module anybeam_tee( stem = "OOO", top = "OOO", height = AB_BEAM_HEIGHT ) {
+module anybeam_tee( stem = "OOO", top = "OOO", height = 1 ) {
   anybeam( [ "OOO", [ 2, 1, 90 ], "OOO" ], height );
 }
 
-module anybeam_143( left = "XOOO", right = "OOOOOX", height = AB_BEAM_HEIGHT ) {
+module anybeam_143( left = "XOOO", right = "OOOOOX", height = 1 ) {
   anybeam( [ left, [ len(left), 1, 53.13 ], right ], height );
 }
 
-module anybeam_90(left = "XOOO", right = "OO", height = AB_BEAM_HEIGHT) {
+module anybeam_90(left = "XOOO", right = "OO", height = 1) {
   anybeam( [ left, [ len(left), 1, 90 ], right ], height );
 }
 
-module anybeam_135x2(left = "XOOOOOO", middle = " () ", right = "OOX", height = AB_BEAM_HEIGHT) {
+module anybeam_135x2(left = "XOOOOOO", middle = " () ", right = "OOX", height = 1) {
   anybeam( [ left, [ len(left), 1, 45 ], middle, [ len(middle), 1, 45], right ], height );
 }
 
 //
 // Test beam that uses all features.
 //
-module anybeam_test(left = "XOOOOOO", middle = "O(-) ", right = 3, height = AB_BEAM_HEIGHT) {
+module anybeam_test(left = "XOOOOOO", middle = "O(-) ", right = 3, height = 1) {
   anybeam( [ left, [ len(left), 3, 45 ], middle, [ len(middle), 1, 45], right ], height );
 }
 
