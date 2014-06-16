@@ -60,6 +60,7 @@ AB_HOLE_RING_DEPTH = 0.9;
 AB_BEAM_WIDTH = 7.6;
 AB_AXLE_GAP = 1.95;
 AB_AXLE_LENGTH = 5.1;
+AB_MOUSE_EARS = true;
 
 AB_BEAM_HEIGHT = 7.8;
 AB_THIN_BEAM_HEIGHT = AB_BEAM_HEIGHT/3;
@@ -185,6 +186,31 @@ module ab_beams( beams = [], height = AB_BEAM_HEIGHT, b = 0 ) {
   }
 }
 
+module ab_mouse_ear( beam = "OOOO", beam_height = AB_BEAM_HEIGHT ) {
+  holes = len(beam) ? len(beam)-1 : beam-1;
+  beam_length = holes*AB_HOLE_SPACING;
+
+  union() {
+    translate( [beam_length/2,0,0] ) {
+
+		// Mouse Ear
+      translate( [-beam_length/2, 0, -(AB_BEAM_HEIGHT-.5)/2] )
+			difference() {
+	        cylinder( r = AB_BEAM_WIDTH, .5, center=true, $fn=100 );
+	        cylinder( r = AB_BEAM_WIDTH/2+.2, 1, center=true, $fn=100 );
+         }
+
+		// Mouse Ear
+      translate( [beam_length/2, 0, -(AB_BEAM_HEIGHT-.5)/2] )
+			difference() {
+	        cylinder( r = AB_BEAM_WIDTH, .5, center=true, $fn=100 );
+	        cylinder( r = AB_BEAM_WIDTH/2+.2, 1, center=true, $fn=100 );
+	      }
+    }
+
+    if( $children ) children(0);
+  }
+}
 
 //
 // A single solid beam.
@@ -199,11 +225,16 @@ module ab_solid_beam( beam = "OOOO", beam_height = AB_BEAM_HEIGHT ) {
 
       translate( [-beam_length/2, 0, 0] )
         cylinder( r = AB_BEAM_WIDTH/2, beam_height, center=true, $fn=100 );
+
       translate( [beam_length/2, 0, 0] )
         cylinder( r = AB_BEAM_WIDTH/2, beam_height, center=true, $fn=100 );
-      }
+    }
 
-    if( $children ) child(0);
+	if( AB_MOUSE_EARS == true ) {
+	  ab_mouse_ear( beam, beam_height );
+   }
+
+    if( $children ) children(0);
   }
 }
 
