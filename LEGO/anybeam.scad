@@ -70,15 +70,13 @@ function ab_fill(car, nb_occ, out="") = (nb_occ == 0) ? out : str(ab_fill(car, n
 
 // anybeam( [ "XOOO", [ 4, 1, 53.13 ],   "OOO()", [ 5, 1, -53.13 ],   "(-)X" ], AB_THIN_BEAM_HEIGHT )
 
-anybeam( [ "XOOX", [ 4, 1, 90 ], "XOOOOX", [ 6, 1, 90 ], "XOOX", [ 4, 1, 90 ], "XOOOOX" ], 1/3);
+// anybeam( [ "XOOX", [ 4, 1, 90 ], "XOOOOX", [ 6, 1, 90 ], "XOOX", [ 4, 1, 90 ], "XOOOOX" ], 1/3);
 
 module anybeam( beams = [], height = 1 ) {
-  translate([0, 0, height/2]) {
     difference() {
       ab_beams( beams, height * AB_BEAM_HEIGHT );
       ab_holes( beams, height * AB_BEAM_HEIGHT );
     }
-  }
 }
 
 module anybeam_straight( holes = 10, height = 1 ) {
