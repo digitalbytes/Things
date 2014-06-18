@@ -1,9 +1,31 @@
-AnyBeam OpenSCAD Library 
+AnyBeam/AnyPanel OpenSCAD Libraries
 ====
 
-This library provides the anybeam() module that can be used to create beams with a variety of hole, axle and slot patterns using a simple declaritive syntax. 
+These libraries provide the anybeam() and anypanel() modules.
+
+The anybeam() module can be used to create LEGO compabible beams with a variety of hole, axle and slot patterns using a simple declaritive syntax.
+
+The anypanel() module can be used to create LEGO compatible flat panels.
 
 **NOTE** - This library requires OpenSCAD version 2013.06 or higher because of it's use of recursion. 
+
+AnyPanel
+-----
+
+**Syntax** 
+
+    anypanel( PANELWIDTH, PANELHEIGHT )
+
+**Example**
+
+A 5 x 11 panel. Note the long beam length in this case is 7 (11 - 4).
+
+    anypanel( 5, 11 )
+
+AnyBeam
+-----
+
+This module now has a global variable AB_MOUSE_EARS which defaults to **false**. You can set this to **true** and mouse ears will be added to the ends of each of the beams to ensure that the beam adhears to the build plate.
 
 **Syntax** 
 
@@ -12,6 +34,7 @@ This library provides the anybeam() module that can be used to create beams with
  * HEIGHT - Height in standard beam height units. Use 1/3 to create thin beams.
  * BEAM - A beam string, See below.
  * CONNECTION - A connection array. See below.
+
 
 Beam String
 -----
@@ -51,7 +74,7 @@ The connection hole specifier may include a fractional part. A 4x2 beam with the
 
     [ "XOOO", [ 2.5, 1, 90 ], "_O" ]  
 
-Complete Examples
+Examples
 ----
 
 A size 12 beam with two 45 degree bends at holes 7 and 10 and a size two slot between holes 8 and 9. 
